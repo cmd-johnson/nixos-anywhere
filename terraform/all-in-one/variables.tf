@@ -144,6 +144,12 @@ variable "build_on_remote" {
   default     = false
 }
 
+variable "ignore_systemd_errors" {
+  type = bool
+  description = "Ignore systemd errors happening during deploy"
+  default = false
+}
+
 variable "install_bootloader" {
   type = bool
   description = "Install/re-install the bootloader"
