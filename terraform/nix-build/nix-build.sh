@@ -29,13 +29,24 @@ else
   # e.g. config_attribute=config.system.build.toplevel
   config_attribute="config.${rest#*.config.}"
 
-  # grab flake nar from error message
+  # e.g. flake_rel="." or flake_rel="github:username/repo/<commit_hash>"
   flake_rel="$(echo "${attribute}" | cut -d "#" -f 1)"
-  # e.g. flake_rel="."
-  flake_dir="$(readlink -f "${flake_rel}")"
-  flake_nar="$(nix flake prefetch "${flake_dir}" --json | jq -r '.hash')"
+
+  if [[ -d "${flake_rel}" ]]; then
+    # we're looking at a flake directory
+    # resolve symlinks and resolve directories to an absolute path
+    flake_dir="$(readlink -f "${flake_rel}")"
+    # grab flake nar
+    flake_nar="$(nix flake prefetch "${flake_dir}" --json | jq -r '.hash')"
+    # construct the flake file URL including its hash
+    flake_url="file://${flake_dir}/flake.nix?narHash=${flake_nar}"
+  else
+    # flake_rel is not a directory, assume that it is a flake reference URL already
+    flake_url="${flake_rel}"
+  fi
+
   # substitute variables into the template
-  nix_expr="(builtins.getFlake ''file://${flake_dir}/flake.nix?narHash=${flake_nar}'').${config_path}.extendModules { specialArgs = builtins.fromJSON ''${special_args}''; }"
+  nix_expr="(builtins.getFlake ''${flake_url}'').${config_path}.extendModules { specialArgs = builtins.fromJSON ''${special_args}''; }"
   # inject `special_args` into nixos config's `specialArgs`
   # shellcheck disable=SC2086
   out=$(nix build --no-link --json ${options} --expr "${nix_expr}" "${config_attribute}")
