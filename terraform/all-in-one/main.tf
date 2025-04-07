@@ -63,3 +63,7 @@ module "nixos-rebuild" {
 output "result" {
   value = module.system-build.result
 }
+
+output "partitioner_result" {
+  value = module.partitioner-build.result
+}
