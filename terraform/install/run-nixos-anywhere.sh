@@ -89,4 +89,5 @@ while [[ $# -gt 0 ]]; do
   keyIdx=$((keyIdx + 1))
 done
 
+nix-store --realize "${input[nixos_partitioner]}" "${input[nixos_system]}"
 nix run --extra-experimental-features 'nix-command flakes' "path:${SCRIPT_DIR}/../..#nixos-anywhere" -- "${args[@]}"
