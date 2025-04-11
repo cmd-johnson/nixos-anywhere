@@ -38,6 +38,8 @@ if [[ -n ${SSH_KEY+x} && ${SSH_KEY} != "-" ]]; then
 fi
 set -x
 
+nix-store --realize "$NIXOS_SYSTEM"
+
 try=1
 until NIX_SSHOPTS="${sshOpts[*]}" nix copy -s --experimental-features nix-command --to "ssh://$TARGET" "$NIXOS_SYSTEM"; do
   if [[ $try -gt 10 ]]; then
